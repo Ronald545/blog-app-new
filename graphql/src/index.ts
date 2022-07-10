@@ -1,58 +1,14 @@
 import { ApolloServer } from 'apollo-server-express'
-import { ApolloServerPluginDrainHttpServer, gql } from 'apollo-server-core'
+import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core'
 import express from 'express'
+import mongoose from 'mongoose'
+import dotenv from 'dotenv'
 import http from 'http'
+import { typeDefs } from './typeDefs'
+import { resolvers } from './resolvers'
+dotenv.config()
 
-// graphql type definition
-const typeDefs = gql`
-  type Book {
-    title: String
-    author: String
-  }
-  input BookInput {
-    title: String
-    author: String
-  }
-  type Query {
-    books: [Book]
-  }
-
-  type Mutation {
-    addBook(input: BookInput!): [Book]
-  }
-`
-
-// mock data
-const books = [
-  {
-    title: 'The Awakening',
-    author: 'Kate Chopin',
-  },
-  {
-    title: 'City of Glass',
-    author: 'Paul Auster',
-  },
-]
-
-interface Book {
-  title: string;
-  author: string;
-}
-
-// functions that return data
-const resolvers = {
-  Query: {
-    books: () => books,
-  },
-  Mutation: {
-    addBook: (_ : any, {input}: {input : Book}) => {
-      books.push(input)
-      return books
-    }
-  }
-}
-
-async function startApolloServer(typeDefs: any, resolvers: any) {
+async function startApolloServer (typeDefs: any, resolvers: any) {
   const app = express()
   const httpServer = http.createServer(app)
 
@@ -61,17 +17,21 @@ async function startApolloServer(typeDefs: any, resolvers: any) {
     resolvers,
     csrfPrevention: true,
     cache: 'bounded',
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })]
   })
 
-  await server.start()
-  server.applyMiddleware({
-    app,
-    path: '/'
-  })
+  mongoose.connect(process.env.MONGODB!, async (err) => {
+    if (err) throw err
+    console.log('Mongodb Started')
+    await server.start()
+    server.applyMiddleware({
+      app,
+      path: '/'
+    })
 
-  await new Promise<void>(resolve => httpServer.listen({ port: 4000 }, resolve))
-  console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
+    await new Promise<void>(resolve => httpServer.listen({ port: 4000 }, resolve))
+    console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
+  })
 }
 
 startApolloServer(typeDefs, resolvers)

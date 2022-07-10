@@ -1,3 +1,5 @@
+install:
+	npm install --prefix=frontend && npm install --prefix=graphql
 dev: 
 	concurrently "npm run dev --prefix=frontend" "npm run dev --prefix=graphql"
 
