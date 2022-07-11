@@ -4,6 +4,7 @@ export const typeDefs = gql`
   scalar Date
 
   type Post {
+    _id: String
     title: String
     body: String
     author: String
