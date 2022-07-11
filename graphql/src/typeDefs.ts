@@ -12,6 +12,7 @@ export const typeDefs = gql`
   }
 
   input PostInput {
+    _id: String
     title: String
     body: String
     author: String
@@ -23,5 +24,7 @@ export const typeDefs = gql`
 
   type Mutation {
     addPost(input: PostInput!): Post
+    deletePost(input: String!): String
+    editPost(input: PostInput!): Post
   }
 `
